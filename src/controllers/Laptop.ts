@@ -4,15 +4,15 @@ import Laptop from "../models/Laptop";
 import Employee from "../models/Employee";
 
 const createLaptop = (req: Request, res: Response, next: NextFunction) => {
-  const { id, campus, model } = req.body;
+  const { laptopId, campus, model } = req.body;
 
   const laptop = new Laptop({
     _id: new mongoose.Types.ObjectId(),
-    laptopId: id,
+    laptopId,
     campus,
     model,
   });
-  Laptop.find({ laptopId: id })
+  Laptop.find({ laptopId: laptopId })
     .then((result) => {
       if (result && result.length) {
         return res.status(404).json({ message: "Laptop already exists" });
@@ -31,11 +31,8 @@ const allocateLaptop = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { lapId, empId } = req.body;
-  if (!lapId || !empId) {
-    return res.status(400).json({ message: "Empty lap/emp id" });
-  }
-  const pro1 = await Laptop.findOne({ laptopId: lapId });
+  const { laptopId, empId } = req.body;
+  const pro1 = await Laptop.findOne({ laptopId: laptopId });
   const pro2 = await Employee.findOne({ empId: empId });
   if (pro1 && pro2) {
     if (pro1.campus !== pro2.campus) {
@@ -45,11 +42,11 @@ const allocateLaptop = async (
     return res.status(400).json({ message: "Invalid employee/laptop id" });
   }
 
-  Employee.find({ laptopId: lapId }).then((result) => {
+  Employee.find({ laptopId: laptopId }).then((result) => {
     if (result && result.length) {
       return res.status(400).json({ message: "Laptop already assigned" });
     } else {
-      pro2.laptopId = lapId;
+      pro2.laptopId = laptopId;
       return pro2
         .save()
         .then((emp: any) => res.status(201).json({ emp }))
